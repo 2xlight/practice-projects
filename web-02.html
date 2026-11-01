@@ -2,6 +2,7 @@
 <html lang="vi-VN">
     <head> 
         <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="author" content="2light" />
         <meta name="description"
             content="bullshit web" />
@@ -14,10 +15,79 @@
             information about Open Web technologies including HTML, CSS, and APIs for both websites
             and HTML Apps." />
         <meta property="og:title" content="Mozilla Developer Network" />
+        <!-- iPad Pro with high-resolution Retina display: -->
+        <link
+            rel="apple-touch-icon"
+            sizes="167x167"
+            href="/apple-touch-icon-167x167.png" />
+        <!-- 3x resolution iPhone: -->
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon-180x180.png" />
+        <!-- non-Retina iPad, iPad mini, etc.: -->
+        <link
+            rel="apple-touch-icon"
+            sizes="152x152"
+            href="/apple-touch-icon-152x152.png" />
+        <!-- 2x resolution iPhone and other devices: -->
+        <link rel="apple-touch-icon" href="/apple-touch-icon-120x120.png" />
+        <!-- basic favicon -->
+        <link rel="icon" href="/favicon.ico" />
+        
         <title>WEB 02</title>
+
+        <link rel="stylesheet" href="my-css-file.css" />
+        <script src="my-js-file.js" defer></script>
+
+        <style>
+            /* Font + Reset + Background */
+            :root{
+            --paper:#e7ffc6;  
+            --ink:#000;    
+            --grey:#555;   
+            --font:ui-monospace,"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+            }
+            *{box-sizing:border-box}
+            html{background:var(--paper)}
+
+            /* Cho phép body hiển thị tự nhiên từ trên xuống dưới, không bị ép dính vào giữa màn hình */
+            body{
+            margin: 0;
+            padding: 10px;
+            max-width: 800px; /* Giới hạn độ rộng vừa phải để đọc chữ không bị quá dài */
+            margin-left: auto;
+            margin-right: auto; /* Căn giữa toàn bộ trang web nhưng vẫn cuộn dọc bình thường */
+            background: var(--paper);
+            color: var(--ink);
+            font-family: var(--font);
+            line-height: 1.6;
+            font-size: 20px;
+            }
+
+            /* Giữ lại style cho tiêu đề và hình ảnh, đoạn văn */
+            h1{font-size:36px; line-height:1.2; margin-bottom: 10px;}
+            .subtitle{font-size:14px; color:var(--grey); margin-bottom:20px;}
+            p{margin-bottom: 12px;}
+
+            /* Responsive cho màn hình nhỏ */
+            @media (max-width:480px){
+            body{ padding: 10px; }
+            h1{font-size:28px;}
+            }
+            </style>
     </head>
-    <body>
+<body>
         <h1>WEB 02</h1>
+        <p>
+            I'm creating a link to
+        <a
+            href="https://hackerone.com/2light"
+            title="My hackerone"></a
+        >
+        </p>
+
+        <div class="subtitle">Welcome to my web.</div>
         <p>This web is beautiful.</p>
         <p>I have <strong>something</strong> to say.</p>
         <p>This is a single paragraph, but we are going to 
@@ -48,11 +118,58 @@
           A link to my example.
         </a>
         <a href="https://www.example.com" title="An &quot;interesting&quot; reference">A link to my example.</a>
+        
         <section>
             <div>
                 <p>A paragraph of content.</p>
             </div>
         </section>
         <p>Mo so ky tu: &lt; &gt; &quot; &apos; &amp;</p>
+        <script> 
+            const list = document.createElement('ul');
+            const info = document.createElement('p');
+            const html = document.querySelector('html');
+
+            info.textContent = 'Below is a dynamic list. Click anywhere on the page to add a new list item. Click an existing list item to change its text to something else.';
+
+            document.body.appendChild(info);
+            document.body.appendChild(list);
+
+            html.onclick = function() {
+            const listItem = document.createElement('li');
+            const listContent = prompt('What content do you want the list item to have?');
+            listItem.textContent = listContent;
+            list.appendChild(listItem);
+
+            listItem.onclick = function(e) {
+                e.stopPropagation();
+                const listContent = prompt('Enter new content for your list item');
+                this.textContent = listContent;
+                }
+            }
+        </script>
+        <p>
+            I'm creating a link to
+            <a href="https://www.mozilla.org/en-US/">the Mozilla homepage</a>.
+        </p>
+            <a href="https://github.com/2xlight">
+                <h3>Maybe you will interesting with my codes, y'know?</h3>
+            </a>
+            <a href="https://bugcrowd.com/2light">
+                <h3>My bugcrowd if you wnat a hacker will hacking your heart. <3</h3>
+            </a>
+            <ul>
+                <li>
+                    I'm a Developer (but just part-time).
+                </li>
+                <li>
+                    Und ich bin auch eine Hackerin, vielen Dank.
+                </li>
+            </ul>
+            <p>
+                Want to contact a specific staff member? Find details on our
+                <a href="./contacts.html">contacts page</a>.
+            </p>
+            <p>Visit my <a href="projects/index.html">project homepage</a>.</p>
     </body>
 </html>
