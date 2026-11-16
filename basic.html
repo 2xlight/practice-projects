@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>practice</title>
+<style>
+:root{
+  --paper: #121212;
+  --card: #1e1e1e;
+  --text: #e0e0e0;
+  --muted: #888;
+  --accent: #ff5100;
+  --border: #333;
+  --bg-hover: #2a2a2a;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:20px;min-height:100vh;display:flex;flex-direction:column;align-items:center;background:var(--paper);color:var(--text);font-family:var(--font)}
+
+/* Đã bỏ max-width cố định, để width 100% tràn màn hình */
+header{width:100%;max-width:1400px;padding:16px 24px;background:var(--card);border-radius:8px;border:1px solid var(--border);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+h1{margin:0;font-size:1.5rem;color:var(--accent)}
+
+/* Container chính mở rộng tối đa 1400px hoặc 100% */
+.container { width: 100%; max-width: 1400px; display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
+@media(max-width: 900px){ .container { grid-template-columns: 1fr; } }
+
+/* Sidebar bên phải */
+.sidebar { display: flex; flex-direction: column; gap: 20px; }
+.widget { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.widget h3 { margin: 0 0 12px 0; font-size: 1.1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+.board-list { display: flex; flex-direction: column; gap: 8px; }
+.board-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 10px 14px; text-align: left; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem; }
+.board-btn:hover, .board-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Leaderboard & Khung đại diện */
+.leaderboard-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a2a2a; font-size: 0.95rem; }
+.user-rank-info { display: flex; align-items: center; gap: 10px; }
+.avatar-frame-top1 { position: relative; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(45deg, #ffd700, #ff4500); padding: 2px; display: flex; align-items: center; justify-content: center; }
+.avatar-inner { width: 100%; height: 100%; border-radius: 50%; background: #444; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: bold; color: #fff; }
+
+/* Main content phóng to */
+.main-content { width: 100%; }
+.post-box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+.post-box h3 { margin-top: 0; font-size: 1.2rem; }
+.post-box textarea { width: 100%; background: #121212; border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 6px; resize: vertical; min-height: 120px; font-size: 1rem; }
+.post-box input { width: 100%; background: #121212; border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 6px; margin-bottom: 12px; font-size: 1rem; }
+.post-box select { background: #121212; border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 6px; margin-bottom: 12px; width: 100%; font-size: 1rem; }
+.btn { background: var(--accent); color: #fff; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+.btn:hover { opacity: 0.9; }
+
+/* Post Card tràn rộng */
+.post-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; display: flex; gap: 16px; }
+.vote-section { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-width: 40px; gap: 6px; }
+.vote-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 1.2rem; font-weight: bold; }
+.vote-btn:hover { color: var(--accent); }
+.score-display { font-weight: bold; font-size: 1.1rem; color: var(--text); }
+
+.post-body-content { flex: 1; }
+.post-meta { font-size: 0.9rem; color: var(--muted); margin-bottom: 8px; }
+.post-text { font-size: 1.05rem; line-height: 1.5; margin: 0 0 14px 0; word-break: break-word; }
+.post-footer-actions { display: flex; gap: 20px; font-size: 0.95rem; color: var(--muted); font-weight: 600; cursor: pointer; }
+.post-footer-actions span:hover { color: var(--accent); }
+
+.comments-section { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; }
+.comment-item { font-size: 0.95rem; background: #121212; padding: 8px 12px; border-radius: 6px; margin-bottom: 8px; }
+.comment-form { display: flex; gap: 8px; margin-top: 10px; }
+.comment-form input { flex: 1; background: #121212; border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 4px; font-size: 0.95rem; }
+</style>
+</head>
+<body>
+
+  <header>
+    <h1>practice</h1>
+  </header>
+
+<body>
+        <h1>WEB 02</h1>
+        <h1>Headers</h1>
+        <form action="/login" method="POST" enctype="application/x-www-form-urlencoded">
+        <input type="text" name="username">
+        <input type="password" name="password">
+        <input type="hidden" name="csrf_token" value="abc123">
+        <button type="submit">Đăng nhập</button>
+        <p>
+            I'm creating a link to
+        <a
+            href="https://hackerone.com/2light"
+            title="My hackerone"></a
+        >
+        </p>
+
+        <div class="subtitle">Welcome to my web.</div>
+        <p>This web is beautiful.</p>
+        <p>I have <strong>something</strong> to say.</p>
+        <p>This is a single paragraph, but we are going to 
+            <br />break it onto two lines.</p>
+
+        <!--Attribute -->  
+        <p class="editor-note">My cat is fat as fuck.</p>
+
+        <!-- link anh co mo ta va chieu rong.-->
+        <img
+            src="https://mdn.github.io/shared-assets/images/examples/fx-nightly-512.png"
+            alt="A description of the image"
+            width="300" />
+        
+        <!--Khung disabled-->
+        <label for="first-input">This input is disabled</label>
+        <input id="first-input" type="text" disabled="disabled" />
+        <br />
+        <label for="second-input">This input is also disabled</label>
+        <input id="second-input" type="text" disabled />
+        <br />
+        <label for="third-input">This input isn't disabled; you can type into it</label>
+        <input id="third-input" type="text" />
+
+        <a href=https://www.mozilla.org/>favorite website</a>
+        <a href="https://www.example.com">A link to my example.</a>
+        <a href="https://www.example.com" title="Isn't this fun?">
+          A link to my example.
+        </a>
+        <a href="https://www.example.com" title="An &quot;interesting&quot; reference">A link to my example.</a>
+        
+        <section>
+            <div>
+                <p>A paragraph of content.</p>
+            </div>
+        </section>
+        <p>Mo so ky tu: &lt; &gt; &quot; &apos; &amp;</p>
+        <script> 
+            const list = document.createElement('ul');
+            const info = document.createElement('p');
+            const html = document.querySelector('html');
+
+            info.textContent = 'Below is a dynamic list. Click anywhere on the page to add a new list item. Click an existing list item to change its text to something else.';
+
+            document.body.appendChild(info);
+            document.body.appendChild(list);
+
+            html.onclick = function() {
+            const listItem = document.createElement('li');
+            const listContent = prompt('What content do you want the list item to have?');
+            listItem.textContent = listContent;
+            list.appendChild(listItem);
+
+            listItem.onclick = function(e) {
+                e.stopPropagation();
+                const listContent = prompt('Enter new content for your list item');
+                this.textContent = listContent;
+                }
+            }
+        </script>
+        <p>
+            I'm creating a link to
+            <a href="https://www.mozilla.org/en-US/">the Mozilla homepage</a>.
+        </p>
+            <a href="https://github.com/2xlight">
+                <h3>Maybe you will interesting with my codes, y'know?</h3>
+            </a>
+            <a href="https://bugcrowd.com/2light">
+                <h3>My bugcrowd if you wnat a hacker will hacking your heart. <3</h3>
+            </a>
+            <ul>
+                <li>
+                    I'm a Hacker.
+                </li>
+                <li>
+                    Und ich bin auch eine Entwicklerin, vielen Dank.
+                </li>
+            </ul>
+            <p>
+                Want to contact a specific staff member? Find details on our
+                <a href="./contacts.html">contacts page</a>.
+            </p>
+            <p>Visit my <a href="projects/index.html">project homepage</a>.</p>
+    </body>
+</html>
