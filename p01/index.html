@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17191d">
+  <title>MY STORY</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1c2026;
+      --muted: #727983;
+      --line: #d8dce1;
+      --paper: #ffffff;
+      --surface: #f2f4f6;
+      --dark: #17191d;
+      --accent: #283b51;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-width: 320px;
+      min-height: 100%;
+      margin: 0;
+      border-radius: 0 !important;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: #e8ebef;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button { font: inherit; border-radius: 0 !important; }
+
+    .app {
+      width: min(1120px, 100%);
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--paper);
+      border-left: 1px solid #cfd4da;
+      border-right: 1px solid #cfd4da;
+      border-radius: 0 !important;
+      box-shadow: none;
+    }
+
+    .topbar {
+      height: 58px;
+      flex: 0 0 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 22px;
+      color: #f7f8fa;
+      background: var(--dark);
+      border-bottom: 1px solid #343940;
+    }
+
+    .brand {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 9px;
+      height: 9px;
+      flex: 0 0 9px;
+      background: #c9d4df;
+    }
+
+    .brand-name {
+      overflow: hidden;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+    .top-button {
+      min-height: 32px;
+      padding: 0 12px;
+      color: #e7eaf0;
+      background: transparent;
+      border: 1px solid #555c65;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: .08em;
+    }
+
+    .top-button:hover:not(:disabled) { background: #30343b; }
+    .top-button:disabled { opacity: .35; cursor: not-allowed; }
+
+    .stage {
+      position: relative;
+      height: clamp(180px, 31vh, 300px);
+      flex: 0 0 auto;
+      overflow: hidden;
+      background: #242a32;
+      border-bottom: 1px solid #11151a;
+    }
+
+    .stage-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .stage-shade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(9, 12, 17, .66), rgba(9, 12, 17, .12) 70%),
+                  linear-gradient(0deg, rgba(9, 12, 17, .35), transparent 55%);
+    }
+
+    .stage-meta {
+      position: absolute;
+      left: 24px;
+      bottom: 20px;
+      max-width: calc(100% - 48px);
+      color: #fff;
+    }
+
+    .chapter-label {
+      margin-bottom: 8px;
+      color: #d6dce3;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .scene-title {
+      margin: 0;
+      font-size: clamp(20px, 3vw, 30px);
+      line-height: 1.15;
+      font-weight: 650;
+      letter-spacing: -.025em;
+      overflow-wrap: anywhere;
+    }
+
+    .chat-area {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 360px;
+      padding: 22px clamp(16px, 4vw, 38px) 24px;
+      background: var(--paper);
+    }
+
+    .chat-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 13px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .chat-heading-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .status {
+      color: #7a828c;
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .message-row {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 17px;
+      align-items: start;
+      padding: 24px 0 20px;
+    }
+
+    .portrait-wrap {
+      width: 76px;
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: #e4e7eb;
+      border: 1px solid #cbd0d6;
+      border-radius: 0 !important;
+    }
+
+    .portrait {
+      width: 100%;
+      height: 100%;
+      display: none;
+      object-fit: cover;
+      border-radius: 0 !important;
+    }
+
+    .portrait-fallback {
+      color: #626b76;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: .05em;
+    }
+
+    .message-content { min-width: 0; padding-top: 2px; }
+
+    .speaker {
+      margin: 0 0 9px;
+      color: #46515e;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .dialogue-text {
+      min-height: 74px;
+      margin: 0;
+      color: #20262e;
+      font-size: 15px;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .controls {
+      margin-top: auto;
+      padding-top: 15px;
+      border-top: 1px solid var(--line);
+    }
+
+    .choice-heading {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+
+    .choice-button {
+      width: 100%;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 13px;
+      color: #252c35;
+      text-align: left;
+      background: #f7f8fa;
+      border: 1px solid #d5d9df;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.45;
+      transition: background .12s ease, border-color .12s ease;
+    }
+
+    .choice-button:hover:not(:disabled) {
+      background: #edf1f5;
+      border-color: #929daa;
+    }
+
+    .choice-button:disabled { opacity: .55; cursor: wait; }
+
+    .choice-index {
+      color: #77818d;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .action-hint {
+      color: #838b95;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .main-action {
+      min-width: 145px;
+      min-height: 42px;
+      padding: 0 18px;
+      color: #fff;
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .main-action:hover:not(:disabled) { background: #354e68; }
+    .main-action:disabled { opacity: .55; cursor: wait; }
+
+    .error-message {
+      display: none;
+      margin-top: 14px;
+      padding: 10px 12px;
+      color: #8c2525;
+      background: #fff1f1;
+      border: 1px solid #e6bcbc;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 22px;
+      color: #969da6;
+      background: #f4f5f6;
+      border-top: 1px solid #dfe2e6;
+      font-size: 9px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    [hidden] { display: none !important; }
+
+    @media (max-width: 600px) {
+      .topbar { height: 52px; flex-basis: 52px; padding: 0 13px; }
+      .brand-name { font-size: 11px; }
+      .top-button { min-height: 30px; padding: 0 8px; font-size: 9px; }
+      .stage { height: 220px; }
+      .stage-meta { left: 16px; bottom: 16px; max-width: calc(100% - 32px); }
+      .chat-area { min-height: 390px; padding: 17px 15px 18px; }
+      .message-row { grid-template-columns: 58px minmax(0, 1fr); gap: 12px; padding: 19px 0; }
+      .portrait-wrap { width: 58px; height: 58px; }
+      .dialogue-text { font-size: 14px; min-height: 92px; }
+      .action-row { align-items: flex-end; }
+      .main-action { min-width: 125px; }
+      .footer { padding: 9px 13px; font-size: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name" id="gameTitle">MY STORY</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="top-button" id="backButton" type="button" disabled>BACK</button>
+        <button class="top-button" id="restartButton" type="button">RESTART</button>
+      </div>
+    </header>
+
+    <section class="stage" aria-label="Scene background">
+      <img class="stage-image" id="stageImage" alt="">
+      <div class="stage-shade"></div>
+      <div class="stage-meta">
+        <div class="chapter-label" id="chapterLabel">CHAPTER 01</div>
+        <h1 class="scene-title" id="sceneTitle">Loading...</h1>
+      </div>
+    </section>
+
+    <section class="chat-area" aria-label="Story dialogue">
+      <div class="chat-heading">
+        <span class="chat-heading-label">Dialogue log</span>
+        <span class="status" id="sceneStatus">SCENE 01</span>
+      </div>
+
+      <div class="message-row">
+        <div class="portrait-wrap">
+          <img class="portrait" id="portraitImage" alt="Character portrait">
+          <span class="portrait-fallback" id="portraitFallback">—</span>
+        </div>
+        <div class="message-content">
+          <p class="speaker" id="speakerName">NARRATOR</p>
+          <p class="dialogue-text" id="dialogueText" aria-live="polite">Loading story...</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div id="choicePanel" hidden>
+          <p class="choice-heading">Make a choice</p>
+          <div class="choices" id="choiceList"></div>
+        </div>
+
+        <div class="action-row" id="actionRow">
+          <span class="action-hint" id="actionHint">Continue the dialogue.</span>
+          <button class="main-action" id="continueButton" type="button">CONTINUE</button>
+        </div>
+      </div>
+
+      <div class="error-message" id="errorMessage" role="alert"></div>
+    </section>
+
+    <footer class="footer">
+      <span>Interactive story</span>
+      <span id="footerStatus">Local game</span>
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const el = (id) => document.getElementById(id);
+    const state = {
+      title: "MY STORY",
+      start: "intro",
+      sceneId: null,
+      scene: null,
+      lineIndex: 0,
+      phase: "dialogue",
+      history: [],
+      busy: false
+    };
+
+    function assetUrl(path) {
+      if (!path) return "";
+      // Story image paths are relative to the assets/ folder.
+      return "/" + path.replace(/^\/+/, "").split("/").map(encodeURIComponent).join("/");
+    }
+
+    async function api(url, options = {}) {
+      const response = await fetch(url, {
+        ...options,
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
+      return data;
+    }
+
+    function setBusy(busy) {
+      state.busy = busy;
+      el("continueButton").disabled = busy;
+      el("restartButton").disabled = busy;
+      el("backButton").disabled = busy || (state.lineIndex === 0 && state.history.length === 0);
+      document.querySelectorAll(".choice-button").forEach((button) => {
+        button.disabled = busy;
+      });
+    }
+
+    function showError(message) {
+      const box = el("errorMessage");
+      box.textContent = message;
+      box.hidden = false;
+    }
+
+    function clearError() {
+      el("errorMessage").textContent = "";
+      el("errorMessage").hidden = true;
+    }
+
+    function setBackground(path) {
+      const image = el("stageImage");
+      image.onerror = () => { image.style.display = "none"; image.removeAttribute("src"); };
+      if (!path) {
+        image.style.display = "none";
+        image.removeAttribute("src");
+        return;
+      }
+      image.onload = () => { image.style.display = "block"; };
+      image.src = assetUrl(path);
+    }
+
+    function setPortrait(path, speaker) {
+      const image = el("portraitImage");
+      const fallback = el("portraitFallback");
+      image.onerror = () => {
+        image.style.display = "none";
+        image.removeAttribute("src");
+        fallback.style.display = "block";
+      };
+      if (!path) {
+        image.style.display = "none";
+        image.removeAttribute("src");
+        fallback.style.display = "block";
+        fallback.textContent = speaker ? speaker.trim().slice(0, 1).toUpperCase() : "—";
+        return;
+      }
+      fallback.style.display = "none";
+      image.onload = () => { image.style.display = "block"; };
+      image.src = assetUrl(path);
+    }
+
+    function renderSceneHeader() {
+      const chapter = state.scene.chapter || "STORY";
+      el("chapterLabel").textContent = chapter;
+      el("sceneTitle").textContent = chapter;
+      el("sceneStatus").textContent = `SCENE · ${state.sceneId}`;
+      setBackground(state.scene.background || "");
+    }
+
+    function renderDialogueLine() {
+      const lines = state.scene.dialogue || [];
+      const line = lines[state.lineIndex];
+      if (!line) {
+        showSceneChoices();
+        return;
+      }
+
+      state.phase = "dialogue";
+      el("speakerName").textContent = line.speaker || "NARRATOR";
+      el("dialogueText").textContent = line.text || "";
+      setPortrait(line.avatar || "", line.speaker || "");
+      el("choicePanel").hidden = true;
+      el("actionRow").hidden = false;
+      el("continueButton").textContent = state.lineIndex < lines.length - 1 ? "CONTINUE" : "NEXT";
+      el("actionHint").textContent = state.lineIndex < lines.length - 1
+        ? "Continue the dialogue."
+        : "Go to the next part.";
+      setBusy(false);
+    }
+
+    function showSceneChoices() {
+      const choices = state.scene.choices || [];
+      state.phase = "choices";
+      el("speakerName").textContent = state.scene.ending ? "END" : "SYSTEM";
+      el("dialogueText").textContent = state.scene.ending
+        ? "THE END"
+        : (choices.length ? "What will you do?" : "The scene has ended.");
+      setPortrait("", "");
+      el("choicePanel").hidden = choices.length === 0;
+      el("choiceList").replaceChildren();
+
+      choices.forEach((choice, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "choice-button";
+
+        const number = document.createElement("span");
+        number.className = "choice-index";
+        number.textContent = String(index + 1).padStart(2, "0");
+
+        const label = document.createElement("span");
+        label.textContent = choice.label || `Choice ${index + 1}`;
+        button.append(number, label);
+        button.addEventListener("click", () => choose(index));
+        el("choiceList").append(button);
+      });
+
+      if (state.scene.next) {
+        el("actionRow").hidden = false;
+        el("continueButton").textContent = "CONTINUE";
+        el("actionHint").textContent = "Continue to the next scene.";
+      } else if (state.scene.ending || choices.length === 0) {
+        el("actionRow").hidden = false;
+        el("continueButton").textContent = "RESTART";
+        el("actionHint").textContent = state.scene.ending ? "You reached an ending." : "Restart the story.";
+      } else {
+        el("actionRow").hidden = true;
+      }
+      setBusy(false);
+    }
+
+    async function loadScene(sceneId, options = {}) {
+      clearError();
+      setBusy(true);
+      try {
+        const data = await api(`/api/scene?id=${encodeURIComponent(sceneId)}`);
+        state.sceneId = data.id;
+        state.scene = data.scene;
+        state.lineIndex = options.atEnd ? (state.scene.dialogue || []).length : 0;
+        renderSceneHeader();
+        if (options.atEnd) showSceneChoices();
+        else renderDialogueLine();
+      } catch (error) {
+        showError(error.message);
+        setBusy(false);
+      }
+    }
+
+    async function choose(index) {
+      if (state.busy || !state.scene) return;
+      clearError();
+      setBusy(true);
+      try {
+        const data = await api("/api/choose", {
+          method: "POST",
+          body: JSON.stringify({ scene_id: state.sceneId, choice_index: index })
+        });
+        state.history.push(state.sceneId);
+        state.sceneId = data.id;
+        state.scene = data.scene;
+        state.lineIndex = 0;
+        renderSceneHeader();
+        renderDialogueLine();
+      } catch (error) {
+        showError(error.message);
+        setBusy(false);
+      }
+    }
+
+    async function continueStory() {
+      if (state.busy || !state.scene) return;
+      if (state.phase === "dialogue") {
+        const lines = state.scene.dialogue || [];
+        if (state.lineIndex < lines.length - 1) {
+          state.lineIndex += 1;
+          renderDialogueLine();
+        } else {
+          state.lineIndex = lines.length;
+          showSceneChoices();
+        }
+        return;
+      }
+
+      if (state.scene.next) {
+        clearError();
+        setBusy(true);
+        try {
+          const data = await api("/api/continue", {
+            method: "POST",
+            body: JSON.stringify({ scene_id: state.sceneId })
+          });
+          state.history.push(state.sceneId);
+          state.sceneId = data.id;
+          state.scene = data.scene;
+          state.lineIndex = 0;
+          renderSceneHeader();
+          renderDialogueLine();
+        } catch (error) {
+          showError(error.message);
+          setBusy(false);
+        }
+      } else {
+        restartGame();
+      }
+    }
+
+    async function goBack() {
+      if (state.busy || !state.scene) return;
+      clearError();
+      if (state.phase === "choices" && (state.scene.dialogue || []).length > 0) {
+        state.lineIndex = state.scene.dialogue.length - 1;
+        renderDialogueLine();
+        return;
+      }
+      if (state.lineIndex > 0) {
+        state.lineIndex -= 1;
+        renderDialogueLine();
+        return;
+      }
+      if (state.history.length > 0) {
+        const previousSceneId = state.history.pop();
+        await loadScene(previousSceneId, { atEnd: true });
+      }
+    }
+
+    async function restartGame() {
+      if (state.busy && state.scene) return;
+      state.history = [];
+      state.lineIndex = 0;
+      await loadScene(state.start);
+    }
+
+    async function init() {
+      try {
+        const data = await api("/api/story");
+        state.title = data.title || "MY STORY";
+        state.start = data.start;
+        document.title = state.title;
+        el("gameTitle").textContent = state.title;
+        await loadScene(state.start);
+      } catch (error) {
+        showError(error.message);
+        el("dialogueText").textContent = "Could not load the story. Check app.py and try again.";
+      }
+    }
+
+    el("continueButton").addEventListener("click", continueStory);
+    el("backButton").addEventListener("click", goBack);
+    el("restartButton").addEventListener("click", restartGame);
+
+    // Keyboard shortcuts: Enter = continue; Escape = go back.
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.repeat) {
+        const active = document.activeElement;
+        if (active && active.classList.contains("choice-button")) return;
+        if (active && active.tagName === "BUTTON") return;
+        continueStory();
+      } else if (event.key === "Escape") {
+        goBack();
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>
